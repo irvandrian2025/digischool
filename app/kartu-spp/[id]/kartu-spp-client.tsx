@@ -130,7 +130,7 @@ export function KartuSppClient({ siswa, tahunAjaran, tagihan }: KartuSppClientPr
           {/* Header */}
           <div className="bg-gradient-to-r from-indigo-600 to-blue-500 text-white p-8 text-center print:bg-indigo-600">
             <h1 className="text-3xl font-bold mb-1">KARTU SPP DIGITAL</h1>
-            <p className="text-lg opacity-90">SMK TEKNOLOGI INFORMATIKA</p>
+            
           </div>
 
           <CardContent className="p-0">
@@ -245,7 +245,7 @@ export function KartuSppClient({ siswa, tahunAjaran, tagihan }: KartuSppClientPr
 
             {/* Footer */}
             <div className="bg-gray-50 p-4 text-center text-sm text-gray-500 border-t">
-              Terakhir diperbarui: {lastUpdated} | Bagian Keuangan SMK Teknologi Informatika
+              Terakhir diperbarui: {lastUpdated}
             </div>
           </CardContent>
         </Card>

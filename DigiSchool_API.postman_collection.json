@@ -24,3 +24,67 @@
               "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
             },
             "url": {
+              "raw": "https://digischool-three.vercel.app/api/auth/login",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pembayaran SPP",
+      "item": [
+        {
+          "name": "Get Pembayaran by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://digischool-three.vercel.app/api/pembayaran/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "pembayaran", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Pembayaran",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"tagihan_id\": 1,\n    \"tanggal_bayar\": \"2023-06-15\",\n    \"metode_pembayaran\": \"transfer\",\n    \"jumlah_bayar\": 500000\n}"
+            },
+            "url": {
+              "raw": "https://digischool-three.vercel.app/api/pembayaran/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "pembayaran", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Pembayaran",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "https://digischool-three.vercel.app/api/pembayaran/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "pembayaran", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

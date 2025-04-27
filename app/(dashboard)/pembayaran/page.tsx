@@ -253,13 +253,12 @@ export default function PembayaranPage() {
             isLoading={loading}
             searchColumn="siswa_nama" />
         </CardContent>
-      </Card><PembayaranForm
+      </Card>
+      <PembayaranForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
         pembayaran={selectedPembayaran} />
     </div>
-  )
-}
   )
 }

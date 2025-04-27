@@ -24,7 +24,7 @@ interface KelasFormProps {
 }
 
 // Opsi tingkat kelas
-const tingkatOptions = ["1", "2", "3", "4", "5", "6"]
+const tingkatOptions = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"]
 
 export function KelasForm({ isOpen, onClose, onSubmit, kelas }: KelasFormProps) {
   const [nama, setNama] = useState("")

@@ -47,6 +47,9 @@ export default function PembayaranPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("")
   const [startDate, setStartDate] = useState<string>("")
   const [endDate, setEndDate] = useState<string>("")
+  
+  // Always show filter
+  const showFilter = true
 
   const { toast } = useToast()
 
@@ -177,12 +180,13 @@ export default function PembayaranPage() {
           <h2 className="text-3xl font-bold tracking-tight">Pembayaran</h2>
           <p className="text-muted-foreground">Kelola data pembayaran SPP siswa</p>
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Pembayaran
-        </Button>
       </div>
+      <Button onClick={handleAdd}>
+        <Plus className="mr-2 h-4 w-4" />
+        Tambah Pembayaran
+      </Button>
 
+      <div className="flex items-center gap-4"></div>
       <Card>
         <CardHeader>
           <CardTitle>Filter Pembayaran</CardTitle>
@@ -238,9 +242,7 @@ export default function PembayaranPage() {
             Reset Filter
           </Button>
         </CardContent>
-      </Card>
-
-      <Card>
+      </Card><Card>
         <CardHeader>
           <CardTitle>Daftar Pembayaran</CardTitle>
         </CardHeader>
@@ -249,17 +251,16 @@ export default function PembayaranPage() {
             columns={columns({ onEdit: handleEdit, onDelete: handleDelete })}
             data={pembayaran}
             isLoading={loading}
-            searchColumn="siswa_nama"
-          />
+            searchColumn="siswa_nama" />
         </CardContent>
-      </Card>
-
-      <PembayaranForm
+      </Card><PembayaranForm
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleFormSubmit}
-        pembayaran={selectedPembayaran}
-      />
+        pembayaran={selectedPembayaran} />
+    </>
     </div>
+  )
+}
   )
 }

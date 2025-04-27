@@ -64,6 +64,10 @@ export async function POST(request: Request) {
       customer_details,
       credit_card: {
         secure: true
+      },
+      expiry: {
+        unit: 'minute',
+        duration: 30
       }
     }
 
@@ -101,7 +105,8 @@ export async function POST(request: Request) {
         midtrans_transaction_id = $1,
         midtrans_status = 'pending',
         midtrans_payment_type = $3,
-        midtrans_transaction_time = NOW()
+        midtrans_transaction_time = NOW(),
+        midtrans_expiry_time = NOW() + INTERVAL '30 minutes'
       WHERE id = $2`,
       [parameter.transaction_details.order_id, tagihan_id, payment_type]
     )

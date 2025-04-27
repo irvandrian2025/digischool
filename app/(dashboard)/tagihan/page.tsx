@@ -52,8 +52,9 @@ export default function TagihanPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("")
   const [selectedBulan, setSelectedBulan] = useState<string>("")
   const [selectedTahun, setSelectedTahun] = useState<string>("")
-
   const { toast } = useToast()
+  
+
 
   const bulanOptions = [
     "Juli",
@@ -211,6 +212,8 @@ export default function TagihanPage() {
     setSelectedTahun("")
   }
 
+  const [showFilter, setShowFilter] = useState(false)
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -218,10 +221,33 @@ export default function TagihanPage() {
           <h2 className="text-3xl font-bold tracking-tight">Tagihan</h2>
           <p className="text-muted-foreground">Kelola data tagihan SPP siswa</p>
         </div>
-        <Button onClick={handleAdd}>
-          <Plus className="mr-2 h-4 w-4" />
-          Tambah Tagihan
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowFilter(!showFilter)}
+            className="flex items-center gap-1"
+          >
+            {showFilter ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                Sembunyikan Filter
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+                Tampilkan Filter
+              </>
+            )}
+          </Button>
+          <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Tagihan
+          </Button>
+        </div>
       </div>
 
       <Card>

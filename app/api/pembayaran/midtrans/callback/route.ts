@@ -39,14 +39,19 @@ export async function POST(request: Request) {
     const generatedSignature = crypto
       .createHash('sha512')
       .update(`${order_id}${status_code}${gross_amount}${process.env.MIDTRANS_SERVER_KEY_SANDBOX}`)
-      .digest('hex')
+      .digest('hex').toLowerCase()
 
     // Validasi signature key
-    if (signature_key !== generatedSignature) {
+    if (signature_key.toLowerCase() !== generatedSignature) {
+      console.log('Signature key mismatch:', {
+        received: signature_key.toLowerCase(),
+        generated: generatedSignature
+      })
       return NextResponse.json(
         { 
           success: false, 
-          message: "Signature key tidak valid"
+          message: "Signature key tidak valid",
+          details: "Pastikan server key Midtrans sesuai dengan yang digunakan untuk generate signature"
         },
         { status: 401 }
       );
@@ -63,6 +68,31 @@ export async function POST(request: Request) {
       WHERE midtrans_transaction_id = $5`,
       [transaction_status, transaction_time, transaction_id, payment_type, order_id]
     )
+    
+    // Insert ke tabel pembayaran jika transaksi berhasil
+    if (transaction_status === 'capture' || transaction_status === 'settlement') {
+      const tagihan = await executeQuery("SELECT * FROM tagihan WHERE midtrans_transaction_id = $1", [order_id])
+      if (tagihan.length > 0) {
+        await executeQuery(
+          `INSERT INTO pembayaran (
+            tagihan_id, 
+            tanggal_bayar, 
+            metode_pembayaran, 
+            jumlah_bayar, 
+            keterangan
+          ) VALUES (
+            $1, $2, $3, $4, $5
+          )`,
+          [
+            tagihan[0].id,
+            transaction_time,
+            payment_type,
+            gross_amount,
+            `Pembayaran via Midtrans - ${status_message}`
+          ]
+        )
+      }
+    }
 
     // Response sederhana untuk Midtrans
     return NextResponse.json(

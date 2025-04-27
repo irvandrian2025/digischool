@@ -69,34 +69,36 @@ export async function POST(request: Request) {
       [transaction_status, transaction_time, transaction_id, payment_type, order_id]
     )
     
-    // Insert ke tabel pembayaran jika transaksi berhasil
-    if (transaction_status === 'capture' || transaction_status === 'settlement') {
-      const tagihan = await executeQuery("SELECT * FROM tagihan WHERE midtrans_transaction_id = $1", [order_id])
-      if (tagihan.length > 0) {
-        await executeQuery(
-          `INSERT INTO pembayaran (
-            tagihan_id, 
-            tanggal_bayar, 
-            metode_pembayaran, 
-            jumlah_bayar, 
-            keterangan
-          ) VALUES (
-            $1, $2, $3, $4, $5
-          )`,
-          [
-            tagihan[0].id,
-            transaction_time,
-            payment_type,
-            gross_amount,
-            `Pembayaran via Midtrans - ${status_message}`
-          ]
-        )
-      }
+    // Insert ke tabel pembayaran jika status settlement
+    if (transaction_status === 'settlement') {
+      await executeQuery(
+        `INSERT INTO pembayaran (
+          tagihan_id, 
+          siswa_id, 
+          jumlah, 
+          metode_pembayaran, 
+          status, 
+          tanggal_pembayaran, 
+          midtrans_transaction_id
+        ) VALUES (
+          (SELECT id FROM tagihan WHERE midtrans_transaction_id = $1),
+          (SELECT siswa_id FROM tagihan WHERE midtrans_transaction_id = $1),
+          $2,
+          $3,
+          'paid',
+          $4,
+          $5
+        )`,
+        [order_id, gross_amount, payment_type, transaction_time, transaction_id]
+      )
     }
 
-    // Response sederhana untuk Midtrans
+    // Response untuk Midtrans
     return NextResponse.json(
-      { status: "ok" },
+      { 
+        status_code: "200",
+        status_message: "Callback received and processed successfully"
+      },
       { status: 200 }
     )
   } catch (error) {

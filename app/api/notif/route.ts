@@ -10,7 +10,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 }
 
-// Fungsi untuk memvalidasi signature key dari Midtrans
 // Handler untuk OPTIONS request (preflight CORS)
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders })
@@ -20,12 +19,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     console.log('Midtrans notification:', JSON.stringify(body, null, 2))
-    console.log('Request masuk:', {
-      order_id,
-      gross_amount,
-      payment_type,
-      transaction_status
-    })
     
     const {
       transaction_time,
@@ -34,24 +27,23 @@ export async function POST(request: Request) {
       status_message,
       status_code,
       signature_key,
-      settlement_time,
       payment_type,
       order_id,
       merchant_id,
       gross_amount,
       fraud_status,
-      expiry_time,
       currency,
-      approval_code,
       va_numbers
     } = body
 
     // Validasi server key Midtrans
     if (!process.env.MIDTRANS_SERVER_KEY_SANDBOX) {
+      console.error('Konfigurasi Midtrans tidak lengkap: MIDTRANS_SERVER_KEY_SANDBOX tidak ditemukan');
       return NextResponse.json(
         { 
           success: false, 
-          message: "Konfigurasi Midtrans tidak lengkap"
+          message: "Konfigurasi Midtrans tidak lengkap",
+          details: "Server key Midtrans tidak ditemukan di environment variables"
         },
         { 
           status: 500,
@@ -71,12 +63,6 @@ export async function POST(request: Request) {
       console.log('Signature key mismatch:', {
         received: signature_key.toLowerCase(),
         generated: generatedSignature
-      })
-      console.log('Detail validasi signature:', {
-        order_id,
-        status_code,
-        gross_amount,
-        server_key: process.env.MIDTRANS_SERVER_KEY_SANDBOX ? '***' : 'tidak ada'
       })
       return NextResponse.json(
         { 
@@ -107,16 +93,13 @@ export async function POST(request: Request) {
     }
 
     // Update status pembayaran di database
-    console.log('Memulai update status tagihan:', { order_id, transaction_status })
-    await executeQuery(
+    console.log('Memulai update status tagihan:', { order_id, transaction_status });
+    const updateResult = await executeQuery(
       `UPDATE tagihan SET 
         midtrans_status = $[transaction_status],
         midtrans_transaction_time = $[transaction_time],
         midtrans_transaction_id = $[transaction_id],
         midtrans_payment_type = $[payment_type],
-        midtrans_settlement_time = $[settlement_time],
-        midtrans_expiry_time = $[expiry_time],
-        midtrans_approval_code = $[approval_code],
         status = CASE WHEN $[transaction_status] = 'capture' OR $[transaction_status] = 'settlement' THEN 'paid' ELSE status END
       WHERE midtrans_order_id = $[order_id]`,
       {
@@ -124,17 +107,13 @@ export async function POST(request: Request) {
         transaction_time: transaction_time,
         transaction_id: transaction_id,
         payment_type: payment_type,
-        settlement_time: settlement_time,
-        expiry_time: expiry_time,
-        approval_code: approval_code,
         order_id: order_id
       }
-    )
-    console.log('Update status tagihan selesai:', { order_id, transaction_status })
+    );
+    console.log('Update status tagihan selesai:', { order_id, rowsAffected: updateResult.rowCount });
     
     // Insert ke tabel pembayaran jika status settlement
     if (transaction_status === 'settlement') {
-      console.log('Memulai insert data pembayaran:', { order_id, gross_amount })
       await executeQuery(
         `INSERT INTO pembayaran (
           tagihan_id, 
@@ -165,7 +144,6 @@ export async function POST(request: Request) {
           transaction_id: transaction_id
         }
       )
-          console.log('Insert data pembayaran selesai:', { order_id, gross_amount })
     }
 
     // Response untuk Midtrans

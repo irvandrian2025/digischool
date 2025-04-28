@@ -10,7 +10,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type, Authorization'
 }
 
-// Fungsi untuk memvalidasi signature key dari Midtrans
 // Handler untuk OPTIONS request (preflight CORS)
 export async function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders })
@@ -19,13 +18,7 @@ export async function OPTIONS() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    console.log('Midtrans notification:', JSON.stringify(body, null, 2))
-    console.log('Request masuk:', {
-      order_id,
-      gross_amount,
-      payment_type,
-      transaction_status
-    })
+    console.log('Midtrans notification (alt):', JSON.stringify(body, null, 2))
     
     const {
       transaction_time,
@@ -68,15 +61,9 @@ export async function POST(request: Request) {
 
     // Validasi signature key
     if (signature_key.toLowerCase() !== generatedSignature) {
-      console.log('Signature key mismatch:', {
+      console.log('Signature key mismatch (alt):', {
         received: signature_key.toLowerCase(),
         generated: generatedSignature
-      })
-      console.log('Detail validasi signature:', {
-        order_id,
-        status_code,
-        gross_amount,
-        server_key: process.env.MIDTRANS_SERVER_KEY_SANDBOX ? '***' : 'tidak ada'
       })
       return NextResponse.json(
         { 
@@ -107,7 +94,6 @@ export async function POST(request: Request) {
     }
 
     // Update status pembayaran di database
-    console.log('Memulai update status tagihan:', { order_id, transaction_status })
     await executeQuery(
       `UPDATE tagihan SET 
         midtrans_status = $[transaction_status],
@@ -130,11 +116,9 @@ export async function POST(request: Request) {
         order_id: order_id
       }
     )
-    console.log('Update status tagihan selesai:', { order_id, transaction_status })
     
     // Insert ke tabel pembayaran jika status settlement
     if (transaction_status === 'settlement') {
-      console.log('Memulai insert data pembayaran:', { order_id, gross_amount })
       await executeQuery(
         `INSERT INTO pembayaran (
           tagihan_id, 
@@ -165,14 +149,13 @@ export async function POST(request: Request) {
           transaction_id: transaction_id
         }
       )
-          console.log('Insert data pembayaran selesai:', { order_id, gross_amount })
     }
 
     // Response untuk Midtrans
     return NextResponse.json(
       { 
         status_code: "200",
-        status_message: "Callback received and processed successfully"
+        status_message: "Callback received and processed successfully (alt)"
       },
       { 
         status: 200,
@@ -180,7 +163,7 @@ export async function POST(request: Request) {
       }
     )
   } catch (error) {
-    console.error("Error processing Midtrans notification:", error)
+    console.error("Error processing Midtrans notification (alt):", error)
     return NextResponse.json(
       { 
         status: "error",

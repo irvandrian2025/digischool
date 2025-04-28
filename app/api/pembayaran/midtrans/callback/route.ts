@@ -60,13 +60,13 @@ export async function POST(request: Request) {
     // Update status pembayaran di database
     await executeQuery(
       `UPDATE tagihan SET 
-        midtrans_status = $1,
-        midtrans_transaction_time = $2,
-        midtrans_transaction_id = $3,
-        midtrans_payment_type = $4,
-        status = CASE WHEN $1 = 'capture' OR $1 = 'settlement' THEN 'paid' ELSE status END
-      WHERE midtrans_transaction_id = $5`,
-      [transaction_status, transaction_time, transaction_id, payment_type, order_id]
+        midtrans_status = $[transaction_status],
+        midtrans_transaction_time = $[transaction_time],
+        midtrans_transaction_id = $[transaction_id],
+        midtrans_payment_type = $[payment_type],
+        status = CASE WHEN $[transaction_status] = 'capture' OR $[transaction_status] = 'settlement' THEN 'paid' ELSE status END
+      WHERE midtrans_order_id = $[order_id]`,
+      { transaction_status, transaction_time, transaction_id, payment_type, order_id }
     )
     
     // Insert ke tabel pembayaran jika status settlement
@@ -79,17 +79,21 @@ export async function POST(request: Request) {
           metode_pembayaran, 
           status, 
           tanggal_pembayaran, 
-          midtrans_transaction_id
+          midtrans_transaction_id,
+          midtrans_order_id,
+          midtrans_payment_type
         ) VALUES (
-          (SELECT id FROM tagihan WHERE midtrans_transaction_id = $1),
-          (SELECT siswa_id FROM tagihan WHERE midtrans_transaction_id = $1),
-          $2,
-          $3,
+          (SELECT id FROM tagihan WHERE midtrans_order_id = $[order_id]),
+          (SELECT siswa_id FROM tagihan WHERE midtrans_order_id = $[order_id]),
+          $[gross_amount],
+          $[payment_type],
           'paid',
-          $4,
-          $5
+          $[transaction_time],
+          $[transaction_id],
+          $[order_id],
+          $[payment_type]
         )`,
-        [order_id, gross_amount, payment_type, transaction_time, transaction_id]
+        { order_id, gross_amount, payment_type, transaction_time, transaction_id }
       )
     }
 

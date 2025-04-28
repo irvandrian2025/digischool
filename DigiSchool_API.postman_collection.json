@@ -5,7 +5,19 @@
     "description": "API Collection for DigiSchool SPP Payment System",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
-  "item": [
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://digischool-three.vercel.app",
+      "type": "string"
+    },
+    {
+      "key": "local_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "items": [
     {
       "name": "Authentication",
       "item": [
@@ -24,7 +36,7 @@
               "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\"\n}"
             },
             "url": {
-              "raw": "https://digischool-three.vercel.app/api/auth/login",
+              "raw": "{{base_url}}/api/auth/login",
               "protocol": "https",
               "host": ["digischool-three", "vercel", "app"],
               "path": ["api", "auth", "login"]
@@ -42,7 +54,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "https://digischool-three.vercel.app/api/pembayaran/1",
+              "raw": "{{base_url}}/api/pembayaran/1",
               "protocol": "https",
               "host": ["digischool-three", "vercel", "app"],
               "path": ["api", "pembayaran", "1"]
@@ -64,7 +76,7 @@
               "raw": "{\n    \"tagihan_id\": 1,\n    \"tanggal_bayar\": \"2023-06-15\",\n    \"metode_pembayaran\": \"transfer\",\n    \"jumlah_bayar\": 500000\n}"
             },
             "url": {
-              "raw": "https://digischool-three.vercel.app/api/pembayaran/1",
+              "raw": "{{base_url}}/api/pembayaran/1",
               "protocol": "https",
               "host": ["digischool-three", "vercel", "app"],
               "path": ["api", "pembayaran", "1"]
@@ -77,10 +89,506 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "https://digischool-three.vercel.app/api/pembayaran/1",
+              "raw": "{{base_url}}/api/pembayaran/1",
               "protocol": "https",
               "host": ["digischool-three", "vercel", "app"],
               "path": ["api", "pembayaran", "1"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "item": [
+    {
+      "name": "Tagihan",
+      "item": [
+        {
+          "name": "Get All Tagihan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tagihan",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tagihan"]
+            }
+          }
+        },
+        {
+          "name": "Get Tagihan by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tagihan/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tagihan", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Tagihan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"siswa_id\": 1,\n    \"tahun_ajaran_id\": 1,\n    \"bulan\": \"Januari\",\n    \"jumlah\": 500000,\n    \"status\": \"belum_lunas\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tagihan",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tagihan"]
+            }
+          }
+        },
+        {
+          "name": "Update Tagihan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"siswa_id\": 1,\n    \"tahun_ajaran_id\": 1,\n    \"bulan\": \"Januari\",\n    \"jumlah\": 500000,\n    \"status\": \"lunas\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tagihan/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tagihan", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Tagihan",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tagihan/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tagihan", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tahun Ajaran",
+      "item": [
+        {
+          "name": "Get All Tahun Ajaran",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tahun-ajaran",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tahun-ajaran"]
+            }
+          }
+        },
+        {
+          "name": "Get Tahun Ajaran by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tahun-ajaran/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tahun-ajaran", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Tahun Ajaran",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nama\": \"2023/2024\",\n    \"status\": \"aktif\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tahun-ajaran",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tahun-ajaran"]
+            }
+          }
+        },
+        {
+          "name": "Update Tahun Ajaran",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nama\": \"2023/2024 Updated\",\n    \"status\": \"nonaktif\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tahun-ajaran/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tahun-ajaran", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Tahun Ajaran",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tahun-ajaran/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "tahun-ajaran", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Kelas",
+      "item": [
+        {
+          "name": "Get All Kelas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/kelas",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "kelas"]
+            }
+          }
+        },
+        {
+          "name": "Get Kelas by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/kelas/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "kelas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Kelas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nama\": \"X IPA 1\",\n    \"tingkat\": \"X\",\n    \"tahun_ajaran_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/kelas",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "kelas"]
+            }
+          }
+        },
+        {
+          "name": "Update Kelas",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nama\": \"X IPA 1 Updated\",\n    \"tingkat\": \"X\",\n    \"tahun_ajaran_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/kelas/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "kelas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Kelas",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/kelas/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "kelas", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Siswa",
+      "item": [
+        {
+          "name": "Get All Siswa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/siswa",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "siswa"]
+            }
+          }
+        },
+        {
+          "name": "Get Siswa by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/siswa/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "siswa", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Siswa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nis\": \"12345\",\n    \"nama\": \"John Doe\",\n    \"kelas_id\": 1,\n    \"tahun_ajaran_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/siswa",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "siswa"]
+            }
+          }
+        },
+        {
+          "name": "Update Siswa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"nis\": \"12345\",\n    \"nama\": \"John Doe Updated\",\n    \"kelas_id\": 1,\n    \"tahun_ajaran_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/siswa/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "siswa", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Siswa",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/siswa/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "siswa", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Get All User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "user"]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "user", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"admin123\",\n    \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "user"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin_updated\",\n    \"password\": \"newpassword123\",\n    \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "user", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/1",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "user", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Midtrans",
+      "item": [
+        {
+          "name": "Callback Notification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"transaction_status\": \"capture\",\n    \"order_id\": \"ORDER-12345\",\n    \"payment_type\": \"credit_card\",\n    \"fraud_status\": \"accept\",\n    \"gross_amount\": \"1000000.00\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/midtrans/callback",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "midtrans", "callback"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Midtrans",
+      "item": [
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"order_id\": \"ORDER-123\",\n    \"gross_amount\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/midtrans/create",
+              "protocol": "https",
+              "host": ["digischool-three", "vercel", "app"],
+              "path": ["api", "midtrans", "create"]
             }
           }
         }

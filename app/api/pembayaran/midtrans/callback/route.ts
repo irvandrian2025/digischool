@@ -20,11 +20,27 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     console.log('Midtrans notification:', JSON.stringify(body, null, 2))
+    
+    // Validasi format body request
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      console.error('Invalid request body format:', body)
+      return NextResponse.json(
+        { 
+          status: "error",
+          message: "Format request tidak valid"
+        },
+        { 
+          status: 400,
+          headers: corsHeaders 
+        }
+      )
+    }
+    
     console.log('Request masuk:', {
-      order_id,
-      gross_amount,
-      payment_type,
-      transaction_status
+      order_id: body.order_id,
+      gross_amount: body.gross_amount,
+      payment_type: body.payment_type,
+      transaction_status: body.transaction_status
     })
     
     const {
@@ -43,7 +59,7 @@ export async function POST(request: Request) {
       expiry_time,
       currency,
       approval_code,
-      va_numbers
+      va_numbers = []
     } = body
 
     // Validasi server key Midtrans
@@ -106,31 +122,95 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update status pembayaran di database
-    console.log('Memulai update status tagihan:', { order_id, transaction_status })
-    await executeQuery(
-      `UPDATE tagihan SET 
-        midtrans_status = $[transaction_status],
-        midtrans_transaction_time = $[transaction_time],
-        midtrans_transaction_id = $[transaction_id],
-        midtrans_payment_type = $[payment_type],
-        midtrans_settlement_time = $[settlement_time],
-        midtrans_expiry_time = $[expiry_time],
-        midtrans_approval_code = $[approval_code],
-        status = CASE WHEN $[transaction_status] = 'capture' OR $[transaction_status] = 'settlement' THEN 'paid' ELSE status END
-      WHERE midtrans_order_id = $[order_id]`,
-      {
-        transaction_status: transaction_status,
-        transaction_time: transaction_time,
-        transaction_id: transaction_id,
-        payment_type: payment_type,
-        settlement_time: settlement_time,
-        expiry_time: expiry_time,
-        approval_code: approval_code,
-        order_id: order_id
+    // Insert ke tabel pembayaran jika status settlement atau capture
+    if (['settlement', 'capture'].includes(transaction_status)) {
+      try {
+        console.log('Memulai insert data pembayaran:', { order_id, gross_amount })
+        const insertResult = await executeQuery(
+          `INSERT INTO pembayaran (
+            tagihan_id, 
+            siswa_id, 
+            jumlah, 
+            metode_pembayaran, 
+            status, 
+            tanggal_pembayaran, 
+            midtrans_transaction_id,
+            midtrans_order_id,
+            midtrans_payment_type
+          ) VALUES (
+            (SELECT id FROM tagihan WHERE midtrans_order_id = $[order_id]),
+            (SELECT siswa_id FROM tagihan WHERE midtrans_order_id = $[order_id]),
+            $[gross_amount],
+            $[payment_type],
+            'paid',
+            $[transaction_time],
+            $[transaction_id],
+            $[order_id],
+            $[payment_type]
+          ) RETURNING id`,
+          {
+            order_id: order_id,
+            gross_amount: gross_amount,
+            payment_type: payment_type,
+            transaction_time: transaction_time,
+            transaction_id: transaction_id
+          }
+        )
+        
+        if (!insertResult || !insertResult[0]?.id) {
+          throw new Error('Gagal insert data pembayaran')
+        }
+        
+        console.log('Insert data pembayaran berhasil:', { 
+          pembayaran_id: insertResult[0].id,
+          order_id, 
+          gross_amount 
+        })
+      } catch (insertError) {
+        console.error('Error insert pembayaran:', insertError)
+        throw new Error(`Gagal insert data pembayaran: ${insertError.message}`)
       }
-    )
-    console.log('Update status tagihan selesai:', { order_id, transaction_status })
+    }
+
+    // Update status pembayaran di database
+    try {
+      console.log('Memulai update status tagihan:', { order_id, transaction_status })
+      const updateResult = await executeQuery(
+        `UPDATE tagihan SET 
+          midtrans_status = $[transaction_status],
+          midtrans_transaction_time = $[transaction_time],
+          midtrans_transaction_id = $[transaction_id],
+          midtrans_payment_type = $[payment_type],
+          midtrans_settlement_time = $[settlement_time],
+          midtrans_expiry_time = $[expiry_time],
+          midtrans_approval_code = $[approval_code],
+          status = CASE WHEN $[transaction_status] = 'capture' OR $[transaction_status] = 'settlement' THEN 'paid' ELSE status END
+        WHERE midtrans_order_id = $[order_id] RETURNING id`,
+        {
+          transaction_status: transaction_status,
+          transaction_time: transaction_time,
+          transaction_id: transaction_id,
+          payment_type: payment_type,
+          settlement_time: settlement_time,
+          expiry_time: expiry_time,
+          approval_code: approval_code,
+          order_id: order_id
+        }
+      )
+      
+      if (!updateResult || updateResult.length === 0) {
+        throw new Error('Tagihan tidak ditemukan')
+      }
+      
+      console.log('Update status tagihan berhasil:', { 
+        tagihan_id: updateResult[0].id,
+        order_id, 
+        transaction_status 
+      })
+    } catch (updateError) {
+      console.error('Error update tagihan:', updateError)
+      throw new Error(`Gagal update status tagihan: ${updateError.message}`)
+    }
     
     // Insert ke tabel pembayaran jika status settlement
     if (transaction_status === 'settlement') {

@@ -106,10 +106,13 @@ export function KartuSppClient({ siswa, tahunAjaran, tagihan }: KartuSppClientPr
   }
 
   // Group tagihan by semester
-  const semester1 = tagihan.filter((t) =>
+  // Pastikan tagihan selalu berupa array
+  const safeTagihan = Array.isArray(tagihan) ? tagihan : []
+  
+  const semester1 = safeTagihan.filter((t) =>
     ["Juli", "Agustus", "September", "Oktober", "November", "Desember"].includes(t.bulan),
   )
-  const semester2 = tagihan.filter((t) => ["Januari", "Februari", "Maret", "April", "Mei", "Juni"].includes(t.bulan))
+  const semester2 = safeTagihan.filter((t) => ["Januari", "Februari", "Maret", "April", "Mei", "Juni"].includes(t.bulan))
 
   return (
     <div className="bg-gradient-to-b from-indigo-50 to-blue-50 min-h-screen py-8 px-4 print:bg-white print:py-0">
@@ -210,7 +213,7 @@ export function KartuSppClient({ siswa, tahunAjaran, tagihan }: KartuSppClientPr
 
                 <TabsContent value="all">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    {tagihan.map((item) => (
+                    {safeTagihan.map((item) => (
                       <MonthCard key={item.id} tagihan={item} siswa={siswa} tahunAjaran={tahunAjaran} />
                     ))}
                   </div>
@@ -236,7 +239,7 @@ export function KartuSppClient({ siswa, tahunAjaran, tagihan }: KartuSppClientPr
               {/* Print version - always show all months */}
               <div className="hidden print:block">
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-                  {tagihan.map((item) => (
+                  {safeTagihan.map((item) => (
                     <MonthCard key={item.id} tagihan={item} siswa={siswa} tahunAjaran={tahunAjaran} />
                   ))}
                 </div>

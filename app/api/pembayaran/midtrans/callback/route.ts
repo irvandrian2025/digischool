@@ -122,54 +122,52 @@ export async function POST(request: Request) {
       );
     }
 
-    // Insert ke tabel pembayaran jika status settlement atau capture
-    if (['settlement', 'capture'].includes(transaction_status)) {
-      try {
-        console.log('Memulai insert data pembayaran:', { order_id, gross_amount })
-        const insertResult = await executeQuery(
-          `INSERT INTO pembayaran (
-            tagihan_id, 
-            siswa_id, 
-            jumlah, 
-            metode_pembayaran, 
-            status, 
-            tanggal_pembayaran, 
-            midtrans_transaction_id,
-            midtrans_order_id,
-            midtrans_payment_type
-          ) VALUES (
-            (SELECT id FROM tagihan WHERE midtrans_order_id = $[order_id]),
-            (SELECT siswa_id FROM tagihan WHERE midtrans_order_id = $[order_id]),
-            $[gross_amount],
-            $[payment_type],
-            'paid',
-            $[transaction_time],
-            $[transaction_id],
-            $[order_id],
-            $[payment_type]
-          ) RETURNING id`,
-          {
-            order_id: order_id,
-            gross_amount: gross_amount,
-            payment_type: payment_type,
-            transaction_time: transaction_time,
-            transaction_id: transaction_id
-          }
-        )
-        
-        if (!insertResult || !insertResult[0]?.id) {
-          throw new Error('Gagal insert data pembayaran')
+    // Insert ke tabel pembayaran terlebih dahulu sebelum update status
+    try {
+      console.log('Memulai insert data pembayaran:', { order_id, gross_amount })
+      const insertResult = await executeQuery(
+        `INSERT INTO pembayaran (
+          tagihan_id, 
+          siswa_id, 
+          jumlah, 
+          metode_pembayaran, 
+          status, 
+          tanggal_pembayaran, 
+          midtrans_transaction_id,
+          midtrans_order_id,
+          midtrans_payment_type
+        ) VALUES (
+          (SELECT id FROM tagihan WHERE midtrans_order_id = $[order_id]),
+          (SELECT siswa_id FROM tagihan WHERE midtrans_order_id = $[order_id]),
+          $[gross_amount],
+          $[payment_type],
+          'paid',
+          $[transaction_time],
+          $[transaction_id],
+          $[order_id],
+          $[payment_type]
+        ) RETURNING id`,
+        {
+          order_id: order_id,
+          gross_amount: gross_amount,
+          payment_type: payment_type,
+          transaction_time: transaction_time,
+          transaction_id: transaction_id
         }
-        
-        console.log('Insert data pembayaran berhasil:', { 
-          pembayaran_id: insertResult[0].id,
-          order_id, 
-          gross_amount 
-        })
-      } catch (insertError) {
-        console.error('Error insert pembayaran:', insertError)
-        throw new Error(`Gagal insert data pembayaran: ${insertError.message}`)
+      )
+      
+      if (!insertResult || !insertResult[0]?.id) {
+        throw new Error('Gagal insert data pembayaran')
       }
+      
+      console.log('Insert data pembayaran berhasil:', { 
+        pembayaran_id: insertResult[0].id,
+        order_id, 
+        gross_amount 
+      })
+    } catch (insertError) {
+      console.error('Error insert pembayaran:', insertError)
+      throw new Error(`Gagal insert data pembayaran: ${insertError.message}`)
     }
 
     // Update status pembayaran di database

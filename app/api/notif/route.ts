@@ -2,8 +2,8 @@ import { NextResponse } from "next/server"
 import { executeQuery } from "@/lib/db"
 import crypto from "crypto"
 
-// Header untuk mengatasi CORS
 export const dynamic = 'force-dynamic'
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     console.log('Midtrans notification:', JSON.stringify(body, null, 2))
-    
+
     const {
       transaction_time,
       transaction_status,
@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       va_numbers
     } = body
 
-    // Validasi server key Midtrans
     if (!process.env.MIDTRANS_SERVER_KEY_SANDBOX) {
       console.error('Konfigurasi Midtrans tidak lengkap: MIDTRANS_SERVER_KEY_SANDBOX tidak ditemukan');
       return NextResponse.json(
@@ -52,13 +51,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate signature key untuk validasi
     const generatedSignature = crypto
       .createHash('sha512')
       .update(`${order_id}${status_code}${gross_amount}${process.env.MIDTRANS_SERVER_KEY_SANDBOX}`)
-      .digest('hex').toLowerCase()
+      .digest('hex')
+      .toLowerCase()
 
-    // Validasi signature key
     if (signature_key.toLowerCase() !== generatedSignature) {
       console.log('Signature key mismatch:', {
         received: signature_key.toLowerCase(),
@@ -76,8 +74,7 @@ export async function POST(request: Request) {
         }
       );
     }
-    
-    // Validasi status transaksi
+
     if (!['capture', 'settlement', 'pending', 'deny', 'cancel', 'expire'].includes(transaction_status)) {
       return NextResponse.json(
         {
@@ -92,61 +89,69 @@ export async function POST(request: Request) {
       );
     }
 
-    // Update status pembayaran di database
-    console.log('Memulai update status tagihan:', { order_id, transaction_status });
-    const updateResult = await executeQuery(
-      `UPDATE tagihan SET 
-        midtrans_status = $[transaction_status],
-        midtrans_transaction_time = $[transaction_time],
-        midtrans_transaction_id = $[transaction_id],
-        midtrans_payment_type = $[payment_type],
-        status = CASE WHEN $[transaction_status] = 'capture' OR $[transaction_status] = 'settlement' THEN 'paid' ELSE status END
-      WHERE midtrans_order_id = $[order_id]`,
-      {
-        transaction_status: transaction_status,
-        transaction_time: transaction_time,
-        transaction_id: transaction_id,
-        payment_type: payment_type,
-        order_id: order_id
-      }
-    );
-    console.log('Update status tagihan selesai:', { order_id, rowsAffected: updateResult.rowCount });
-    
-    // Insert ke tabel pembayaran jika status settlement
-    if (transaction_status === 'settlement') {
+    // Proses untuk status sukses capture/settlement
+    if (['capture', 'settlement'].includes(transaction_status)) {
+      console.log('Memulai insert data pembayaran:', { order_id, gross_amount });
+
       await executeQuery(
         `INSERT INTO pembayaran (
           tagihan_id, 
           siswa_id, 
-          jumlah, 
+          jumlah_bayar, 
           metode_pembayaran, 
           status, 
-          tanggal_pembayaran, 
+          tanggal_bayar, 
           midtrans_transaction_id,
           midtrans_order_id,
           midtrans_payment_type
         ) VALUES (
-          (SELECT id FROM tagihan WHERE midtrans_order_id = $[order_id]),
-          (SELECT siswa_id FROM tagihan WHERE midtrans_order_id = $[order_id]),
-          $[gross_amount],
-          $[payment_type],
+          (SELECT id FROM tagihan WHERE midtrans_transaction_id = $1),
+          (SELECT siswa_id FROM tagihan WHERE midtrans_transaction_id = $1),
+          $2,
+          $3,
           'paid',
-          $[transaction_time],
-          $[transaction_id],
-          $[order_id],
-          $[payment_type]
-        )`,
-        {
-          order_id: order_id,
-          gross_amount: gross_amount,
-          payment_type: payment_type,
-          transaction_time: transaction_time,
-          transaction_id: transaction_id
-        }
-      )
+          $4,
+          $5,
+          $6,
+          $7
+        ) RETURNING id`,
+        [
+          order_id,
+          gross_amount,
+          payment_type,
+          transaction_time,
+          transaction_id,
+          order_id,
+          payment_type
+        ]
+      );
+
+      console.log('Memulai update status tagihan:', { order_id, transaction_status });
+
+      const updateResult = await executeQuery(
+        `UPDATE tagihan SET 
+          midtrans_status = $1::varchar(50),
+          midtrans_transaction_time = $2,
+          midtrans_transaction_id = $3,
+          midtrans_payment_type = $4,
+          status = CASE WHEN $1 = 'capture' OR $1 = 'settlement' THEN 'paid' ELSE status END
+        WHERE midtrans_transaction_id = $5`,
+        [
+          transaction_status,
+          transaction_time,
+          transaction_id,
+          payment_type,
+          order_id
+        ]
+      );
+
+      if (updateResult.rowCount === 0) {
+        throw new Error(`Tagihan dengan order_id ${order_id} tidak ditemukan`);
+      }
+
+      console.log('Update status tagihan selesai:', { order_id, rowsAffected: updateResult.rowCount });
     }
 
-    // Response untuk Midtrans
     return NextResponse.json(
       { 
         status_code: "200",
@@ -157,6 +162,7 @@ export async function POST(request: Request) {
         headers: corsHeaders 
       }
     )
+
   } catch (error) {
     console.error("Error processing Midtrans notification:", error)
     return NextResponse.json(

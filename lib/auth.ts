@@ -1,6 +1,5 @@
 import { compare, hash } from "bcryptjs"
 import { executeQuery } from "./db"
-import { cookies } from "next/headers"
 import { SignJWT, jwtVerify } from "jose"
 import type { NextRequest } from "next/server"
 
@@ -15,29 +14,15 @@ export async function verifyPassword(password: string, hashedPassword: string): 
 }
 
 export async function authenticateUser(username: string, password: string) {
-  try {
-    const result = await executeQuery("SELECT id, username, password, name, role FROM users WHERE username = $1", [
-      username,
-    ])
+  const result = await executeQuery("SELECT id, username, password, name, role FROM users WHERE username = $1", [username])
+  if (result.length === 0) return null
 
-    if (result.length === 0) {
-      return null
-    }
+  const user = result[0]
+  const match = await verifyPassword(password, user.password)
+  if (!match) return null
 
-    const user = result[0]
-    const passwordMatch = await verifyPassword(password, user.password)
-
-    if (!passwordMatch) {
-      return null
-    }
-
-    // Remove password from user object
-    delete user.password
-    return user
-  } catch (error) {
-    console.error("Authentication error:", error)
-    return null
-  }
+  delete user.password
+  return user
 }
 
 export async function createToken(payload: any) {
@@ -53,40 +38,39 @@ export async function verifyToken(token: string) {
     const { payload } = await jwtVerify(token, secretKey)
     return payload
   } catch (error) {
+    console.error("Token verification failed:", error)
     return null
   }
 }
 
-export async function getSession() {
-  const cookieStore = await cookies()
-  const token = cookieStore.get("auth-token")?.value
-
-  if (!token) return null
-
-  return await verifyToken(token)
+// lib/auth.ts
+export function getClientToken(): string | null {
+  if (typeof document === "undefined") return null
+  const match = document.cookie.match(/auth-token=([^;]+)/)
+  return match?.[1] ?? null
 }
 
-export async function getCurrentUser() {
-  const session = await getSession()
 
-  if (!session?.id) return null
 
+// ✅ Untuk MIDDLEWARE atau API route (dapat req)
+export async function getSessionFromRequest(req: NextRequest) {
   try {
-    const result = await executeQuery("SELECT id, username, name, role FROM users WHERE id = $1", [session.id])
-
-    if (result.length === 0) return null
-
-    return result[0]
-  } catch (error) {
-    console.error("Get current user error:", error)
+    const token = req.cookies.get("auth-token")?.value
+    if (!token) return null
+    return await verifyToken(token)
+  } catch {
     return null
   }
 }
 
-export function getAuthorizationToken(req: NextRequest) {
-  const authHeader = req.headers.get("authorization")
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+// ✅ Untuk LAYOUT SERVER COMPONENT (tanpa req)
+export async function getSessionFromHeader() {
+  try {
+    const token = cookies().get("auth-token")?.value
+    if (!token) return null
+    return await verifyToken(token)
+  } catch {
     return null
   }
-  return authHeader.substring(7)
 }
+

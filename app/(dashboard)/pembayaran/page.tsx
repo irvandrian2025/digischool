@@ -180,11 +180,13 @@ export default function PembayaranPage() {
           <h2 className="text-3xl font-bold tracking-tight">Pembayaran</h2>
           <p className="text-muted-foreground">Kelola data pembayaran SPP siswa</p>
         </div>
+        <div className="flex items-center gap-4">
+          <Button onClick={handleAdd}>
+            <Plus className="mr-2 h-4 w-4" />
+            Tambah Pembayaran
+          </Button>
+        </div>
       </div>
-      <Button onClick={handleAdd}>
-        <Plus className="mr-2 h-4 w-4" />
-        Tambah Pembayaran
-      </Button>
 
       <div className="flex items-center gap-4"></div>
       <Card>

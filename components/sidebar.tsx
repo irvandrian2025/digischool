@@ -16,7 +16,7 @@ const menuItems = [
   { name: "Users", href: "/users", icon: Users },
 ]
 
-export function Sidebar() {
+export default function Sidebar() {
   const pathname = usePathname()
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const [showTagihanFilter, setShowTagihanFilter] = useState(false)
@@ -105,11 +105,7 @@ export function Sidebar() {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden md:flex flex-col w-64 bg-indigo-800 text-white">
-        <div className="flex items-center h-16 px-4 border-b border-indigo-700">
-          <School className="h-6 w-6 mr-2" />
-          <span className="text-xl font-bold">DigiSchool</span>
-        </div>
+      <div className="hidden md:flex flex-col w-64 bg-indigo-800 text-white fixed top-16 left-0 bottom-0 z-40">
         <div className="flex-1 overflow-y-auto py-4">
           <nav className="px-2 space-y-1">
             

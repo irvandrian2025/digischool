@@ -13,66 +13,8 @@ export default function LoginPage() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
-  const [seedSuccess, setSeedSuccess] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [seedingDb, setSeedingDb] = useState(false)
-  const [dbStatus, setDbStatus] = useState<{
-    isSeeded: boolean
-    counts?: { users: number; tahunAjaran: number }
-  } | null>(null)
-  const [checkingDb, setCheckingDb] = useState(true)
   const router = useRouter()
-
-  useEffect(() => {
-    checkDatabaseStatus()
-  }, [])
-
-  const checkDatabaseStatus = async () => {
-    setCheckingDb(true)
-    setError("")
-    try {
-      const response = await fetch("/api/check-db-status")
-      const data = await response.json()
-
-      if (response.ok) {
-        setDbStatus(data)
-      } else {
-        setError("Gagal memeriksa status database: " + (data.message || "Unknown error"))
-      }
-    } catch (err) {
-      console.error("Error checking database status:", err)
-      setError("Terjadi kesalahan saat memeriksa status database")
-    } finally {
-      setCheckingDb(false)
-    }
-  }
-
-  const handleSeedDatabase = async () => {
-    setSeedingDb(true)
-    setError("")
-    setSeedSuccess(null)
-
-    try {
-      const response = await fetch("/api/seed")
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Gagal mengisi database")
-      }
-
-      setSeedSuccess(
-        `Database berhasil diisi dengan ${data.counts?.tahunAjaran || 0} tahun ajaran, ${data.counts?.kelas || 0} kelas, ${data.counts?.siswa || 0} siswa, dan ${data.counts?.users || 0} pengguna.`,
-      )
-
-      // Re-check database status
-      await checkDatabaseStatus()
-    } catch (err: any) {
-      console.error("Error seeding database:", err)
-      setError(err.message || "Gagal mengisi database")
-    } finally {
-      setSeedingDb(false)
-    }
-  }
 
   // Direct access without authentication
   const handleDirectAccess = () => {
@@ -81,8 +23,36 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Just redirect to dashboard without authentication
-    router.push("/dashboard")
+    setLoading(true)
+    setError("")
+    
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password }),
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        // Jangan simpan token di localStorage atau set cookie manual di client
+        // Token dan cookie sudah diatur oleh server melalui response API
+        console.log(data);
+        console.log("Redirecting to", data.redirectUrl || '/dashboard');
+        router.push(data.redirectUrl || '/dashboard')
+        router.refresh()
+      } else {
+        setError(data.message || "Login gagal")
+      }
+    } catch (err) {
+      console.error("Login error:", err)
+      setError("Terjadi kesalahan saat login")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -93,64 +63,7 @@ export default function LoginPage() {
           <p className="text-gray-600">Sistem Pembayaran SPP Digital</p>
         </div>
 
-        {checkingDb ? (
-          <Card className="border-indigo-100 shadow-lg">
-            <CardContent className="pt-6 flex justify-center items-center">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-              <p className="ml-2">Memeriksa status database...</p>
-            </CardContent>
-          </Card>
-        ) : error ? (
-          <Card className="border-indigo-100 shadow-lg">
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Error</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-              <div className="flex justify-center mt-4">
-                <Button onClick={checkDatabaseStatus} className="bg-indigo-600 hover:bg-indigo-700">
-                  Coba Lagi
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : !dbStatus?.isSeeded ? (
-          <Card className="border-indigo-100 shadow-lg">
-            <CardHeader className="space-y-1 text-center">
-              <CardTitle className="text-2xl font-bold">Database Belum Terisi</CardTitle>
-              <CardDescription>
-                Database belum memiliki data awal. Silakan isi database terlebih dahulu.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {seedSuccess && (
-                <Alert className="mb-4">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <AlertDescription>{seedSuccess}</AlertDescription>
-                </Alert>
-              )}
-              <div className="flex justify-center">
-                <Button onClick={handleSeedDatabase} disabled={seedingDb} className="bg-indigo-600 hover:bg-indigo-700">
-                  {seedingDb ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Mengisi Database...
-                    </>
-                  ) : (
-                    <>
-                      <Database className="mr-2 h-4 w-4" />
-                      Isi Database dengan Data Awal
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="border-indigo-100 shadow-lg">
+        <Card className="border-indigo-100 shadow-lg">
             <CardHeader className="space-y-1 text-center">
               <CardTitle className="text-2xl font-bold">Login</CardTitle>
               <CardDescription>Klik tombol di bawah untuk masuk ke sistem</CardDescription>
@@ -163,23 +76,58 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              <Alert className="mb-4 bg-yellow-50 border-yellow-200 text-yellow-800">
-                <AlertTitle>Mode Pengembangan</AlertTitle>
-                <AlertDescription>
-                  Autentikasi dinonaktifkan sementara. Klik tombol di bawah untuk masuk langsung ke sistem.
-                </AlertDescription>
-              </Alert>
-
-              <Button onClick={handleDirectAccess} className="w-full bg-indigo-600 hover:bg-indigo-700">
-                <LogIn className="mr-2 h-4 w-4" />
-                Masuk Langsung
-              </Button>
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                    Username
+                  </label>
+                  <input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                    Password
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    required
+                  />
+                </div>
+                <Button 
+                  type="submit" 
+                  onClick={handleSubmit} 
+                  disabled={loading}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Memproses...
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Masuk
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
             <CardFooter className="flex justify-center">
               <p className="text-sm text-gray-500">© {new Date().getFullYear()} DigiSchool - Sistem Pembayaran SPP</p>
             </CardFooter>
           </Card>
-        )}
+        
       </div>
     </div>
   )

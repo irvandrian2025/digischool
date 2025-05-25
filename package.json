@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
     "@aws-sdk/client-rds-data": "latest",
     "@cloudflare/workers-types": "latest",
     "@electric-sql/pglite": "latest",
@@ -54,6 +55,7 @@
     "@types/sql.js": "latest",
     "@vercel/postgres": "latest",
     "@xata.io/client": "latest",
+    "antd": "^5.25.2",
     "autoprefixer": "^10.4.20",
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "latest",
@@ -64,6 +66,7 @@
     "date-fns": "4.1.0",
     "drizzle-orm": "latest",
     "embla-carousel-react": "8.5.1",
+    "exceljs": "^4.4.0",
     "expo-sqlite": "latest",
     "gel": "latest",
     "input-otp": "1.4.1",

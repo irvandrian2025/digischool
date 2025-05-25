@@ -273,3 +273,5 @@ export default async function DashboardPage() {
     </div>
   )
 }
+
+export { default as LaporanSppPage } from "./laporan-spp-page";

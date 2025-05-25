@@ -20,7 +20,7 @@ const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...props} />
+  <thead ref={ref} className={cn("[&_tr]:border-b", className)} {...Object.fromEntries(Object.entries(props).map(([k, v]) => [k, k === 'sticky' && typeof v === 'boolean' ? v.toString() : v]))} />
 ))
 TableHeader.displayName = "TableHeader"
 
@@ -68,10 +68,11 @@ TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.ThHTMLAttributes<HTMLTableCellElement> & { sticky?: string }
+>(({ className, sticky, ...props }, ref) => (
   <th
     ref={ref}
+    data-sticky={sticky}
     className={cn(
       "h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0",
       className

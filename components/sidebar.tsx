@@ -14,6 +14,7 @@ const menuItems = [
   { name: "Tagihan", href: "/tagihan", icon: FileText },
   { name: "Pembayaran", href: "/pembayaran", icon: CreditCard },
   { name: "Users", href: "/users", icon: Users },
+  { name: "Laporan SPP", href: "/dashboard/laporan-spp-page", icon: FileText },
 ]
 
 export default function Sidebar() {

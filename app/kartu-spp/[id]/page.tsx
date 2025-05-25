@@ -2,9 +2,10 @@ import { executeQuery } from "@/lib/db"
 import { KartuSppClient } from "./kartu-spp-client"
 
 // This is a server component that fetches data
-export default async function KartuSppPage({ params }: { params: { id: string } }) {
+export default async function KartuSppPage({ params, searchParams }: { params: { id: string }, searchParams: { tahun_ajaran_id?: string } }) {
   try {
     const siswaId = params.id
+    const tahunAjaranId = searchParams.tahun_ajaran_id
 
     // Get siswa data
     const siswaResult = await executeQuery(
@@ -30,22 +31,19 @@ export default async function KartuSppPage({ params }: { params: { id: string } 
 
     const siswa = siswaResult[0]
 
-    // Get latest tahun ajaran
+    // Get tahun ajaran data
     const tahunAjaranResult = await executeQuery(
       `
-      SELECT ta.*
-      FROM tagihan t
-      JOIN tahun_ajaran ta ON t.tahun_ajaran_id = ta.id
-      WHERE t.siswa_id = $1
-      ORDER BY ta.nama DESC
-      LIMIT 1
+      SELECT *
+      FROM tahun_ajaran
+      WHERE id = $1
     `,
-      [siswaId],
+      [tahunAjaranId],
     )
 
     const tahunAjaran = tahunAjaranResult.length > 0 ? tahunAjaranResult[0] : null
 
-    // Get tagihan data for the latest tahun ajaran
+    // Get tagihan data for the specified tahun ajaran
     let tagihan = []
     if (tahunAjaran) {
       tagihan = await executeQuery(
